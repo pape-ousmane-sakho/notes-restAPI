@@ -1,13 +1,13 @@
+use axum::Router;
+use axum::routing::get;
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
     response::IntoResponse,
-    Json,
 };
 use sqlx::PgPool;
 use uuid::Uuid;
-use axum::Router;
-use axum::routing::get;
 
 use crate::models::{CreateNote, Note};
 
@@ -24,10 +24,10 @@ pub async fn get_notes(State(pool): State<PgPool>) -> impl IntoResponse {
         Err(e) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(serde_json::json!({ "error": e.to_string() })),
-        ).into_response(),
+        )
+            .into_response(),
     }
 }
-
 
 pub async fn create_note(
     State(pool): State<PgPool>,
@@ -48,13 +48,11 @@ pub async fn create_note(
         Err(e) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(serde_json::json!({ "error": e.to_string() })),
-        ).into_response(),
+        )
+            .into_response(),
     }
 }
-pub async fn get_note(
-    State(pool): State<PgPool>,
-    Path(id): Path<Uuid>,
-) -> impl IntoResponse {
+pub async fn get_note(State(pool): State<PgPool>, Path(id): Path<Uuid>) -> impl IntoResponse {
     let note = sqlx::query_as!(
         Note,
         "SELECT id, title, content, created_at FROM notes WHERE id = $1",
@@ -68,7 +66,8 @@ pub async fn get_note(
         Err(_) => (
             StatusCode::NOT_FOUND,
             Json(serde_json::json!({ "error": "Note not found" })),
-        ).into_response(),
+        )
+            .into_response(),
     }
 }
 
@@ -93,30 +92,27 @@ pub async fn update_note(
         Err(_) => (
             StatusCode::NOT_FOUND,
             Json(serde_json::json!({ "error": "Note not found" })),
-        ).into_response(),
+        )
+            .into_response(),
     }
 }
 
-pub async fn delete_note(
-    State(pool): State<PgPool>,
-    Path(id): Path<Uuid>,
-) -> impl IntoResponse {
-    let result = sqlx::query!(
-        "DELETE FROM notes WHERE id = $1",
-        id as Uuid
-    )
-    .execute(&pool)
-    .await;
+pub async fn delete_note(State(pool): State<PgPool>, Path(id): Path<Uuid>) -> impl IntoResponse {
+    let result = sqlx::query!("DELETE FROM notes WHERE id = $1", id as Uuid)
+        .execute(&pool)
+        .await;
 
     match result {
         Ok(_) => (
             StatusCode::OK,
             Json(serde_json::json!({ "message": "Note deleted successfully" })),
-        ).into_response(),
+        )
+            .into_response(),
         Err(_) => (
             StatusCode::NOT_FOUND,
             Json(serde_json::json!({ "error": "Note not found" })),
-        ).into_response(),
+        )
+            .into_response(),
     }
 }
 #[cfg(test)]
@@ -132,8 +128,7 @@ mod tests {
 
     async fn get_test_pool() -> PgPool {
         dotenv::dotenv().ok();
-        let database_url = std::env::var("DATABASE_URL")
-            .expect("DATABASE_URL not set");
+        let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL not set");
         PgPoolOptions::new()
             .max_connections(5)
             .connect(&database_url)
@@ -144,7 +139,10 @@ mod tests {
     fn get_test_router(pool: PgPool) -> Router {
         Router::new()
             .route("/notes", get(get_notes).post(create_note))
-            .route("/notes/:id", get(get_note).put(update_note).delete(delete_note))
+            .route(
+                "/notes/:id",
+                get(get_note).put(update_note).delete(delete_note),
+            )
             .with_state(pool)
     }
 
