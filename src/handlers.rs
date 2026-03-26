@@ -1,5 +1,3 @@
-use axum::Router;
-use axum::routing::get;
 use axum::{
     Json,
     extract::{Path, State},
