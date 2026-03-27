@@ -117,8 +117,10 @@ pub async fn delete_note(State(pool): State<PgPool>, Path(id): Path<Uuid>) -> im
 mod tests {
     use super::*;
     use axum::{
+        Router,
         body::Body,
         http::{Request, StatusCode},
+        routing::get,
     };
     use serde_json::json;
     use sqlx::postgres::PgPoolOptions;
